@@ -6,6 +6,7 @@ go:
   - master
 
 script:
+  - ./scripts/test
   - ./scripts/lint
   - ./scripts/build
 
