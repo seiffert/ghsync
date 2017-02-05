@@ -1,0 +1,32 @@
+language: go
+
+go:
+  - 1.x
+  - 1.7.x
+  - master
+
+script:
+  - ./scripts/test
+  - ./scripts/lint
+  - ./scripts/build
+
+after_success:
+  - go get github.com/tcnksm/ghr
+
+deploy:
+  - provider: script
+    script: ghr --username seiffert --token $GITHUB_TOKEN --replace --debug $TRAVIS_TAG dist/
+    skip_cleanup: true
+    on:
+      condition: $TRAVIS_GO_VERSION =~ ^1\.7\.[0-9]+$
+      tags: true
+  - provider: script
+    script: ghr --username seiffert --token $GITHUB_TOKEN --delete --prerelease --debug pre-release dist/
+    skip_cleanup: true
+    on:
+      condition: $TRAVIS_GO_VERSION =~ ^1\.7\.[0-9]+$
+      branch: master
+
+env:
+  global:
+    secure: jYp10vU8/kJ8EYstE4qrg7VYzfR7/kh2sTuN23odPixvmBhKppKCmlBMOSTSyTdCGlRLuZuxP8K48te/XQGLcdHKcFurm2OlzuWycmCWsIJeHsZ4rOgAUF05WL+ZRxNDCghVcEvSlI7zlL3h25yJF+tPevwBeSAYCtAxlJ2rXMOdf7SlUENtXLE0Bkcsu3TrlmjOou1ge5OhhxNW7ocXO/cArAVoaIjv4leehQ4+J6l2E6oewwqWK/0O9J7IH6sA5FhcDr1aqCC8lN7CrFju+YjgLuhQUHQUMJjEp7m77r/2yKon0UfvzLGP40CLxzZW6DKkKzMig3yEDE4Uvtra2puvLgKP0ViDQOAZjVMVbSOX9mOHeUSe9IXfX0O9z6jZfpoQuFjiLd8Xcq310lpwK4XHcoutwL2TG+TjNNa9JanD4lWeBaNYSxE28tn7Tt0SIOOyNTdTddVHhkELK8EdPk/4G6DhFTOJxS890AJswLZ3boz0lpvgJn5Uc7p7MYfieFTtwWDBO8ioctTUfScFXSQsA/vdffxNCsKhJtl+Sr2xVGSZF6LjTuPLASypXU8KrBvANt2f+qUFu+HFz/t7y8RkooLFxIwKiQRtFrnK9IYqV1x5ohBGeoKXSl6jVpnSW00gTZCgmcy1UrfEaQp2XnAL+JmCYllUZoiTxoY3bY8=
