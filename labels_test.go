@@ -92,7 +92,7 @@ func TestEnsureLabel_CreateLeadingHash(t *testing.T) {
 	service := &mockLabelService{}
 	labels := map[string]string{}
 
-	if err := ensureLabel(name, "#" + color, owner, repo, labels, service); err != nil {
+	if err := ensureLabel(name, "#"+color, owner, repo, labels, service); err != nil {
 		t.Fatalf("should not return an error: %s", err)
 	}
 	if len(service.Labels) != 1 {
@@ -113,7 +113,7 @@ func TestEnsureLabel_Update(t *testing.T) {
 
 	service := &mockLabelService{
 		Labels: []*github.Label{{
-			Name: github.String(name),
+			Name:  github.String(name),
 			Color: github.String(oldColor),
 		}},
 	}
@@ -143,7 +143,7 @@ func TestEnsureLabel_AlreadyExists(t *testing.T) {
 
 	service := &mockLabelService{
 		Labels: []*github.Label{{
-			Name: github.String(name),
+			Name:  github.String(name),
 			Color: github.String(color),
 		}},
 	}
