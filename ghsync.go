@@ -59,18 +59,25 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	c := github.NewClient(httpClient)
 
-	repoReader := bufio.NewReader(os.Stdin)
-	repoData, err := ioutil.ReadAll(repoReader)
+	repos, err := readInRepositories()
 	if err != nil {
 		return fmt.Errorf("Error reading repository list: %s", err)
 	}
-	repos := strings.Split(strings.Trim(string(repoData), " \n"), "\n")
 
 	if err := syncLabels(cfg.Labels, repos, c); err != nil {
 		return fmt.Errorf("Error syncing repositories: %s", err)
 	}
 
 	return nil
+}
+
+func readInRepositories() ([]string, error) {
+	repoReader := bufio.NewReader(os.Stdin)
+	repoData, err := ioutil.ReadAll(repoReader)
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(strings.Trim(string(repoData), " \n"), "\n"), nil
 }
 
 func syncLabels(labels map[string]string, repos []string, c *github.Client) error {
