@@ -26,7 +26,8 @@ var (
 		RunE:          run,
 	}
 	cfg struct {
-		Labels map[string]string `mapstructure:"labels"`
+		Labels     map[string]string `mapstructure:"labels"`
+		Milestones []milestone       `mapstructure:"milestones"`
 	}
 	configFile string
 )
@@ -64,8 +65,15 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Error reading repository list: %s", err)
 	}
 
+	log.Println("Syncing Labels")
 	if err := syncLabels(cfg.Labels, repos, c.Issues); err != nil {
-		return fmt.Errorf("Error syncing repositories: %s", err)
+		return fmt.Errorf("Error syncing labels: %s", err)
+	}
+
+	log.Println("")
+	log.Println("Syncing Milestones")
+	if err := syncMilestones(cfg.Milestones, repos, c.Issues); err != nil {
+		return fmt.Errorf("Error syncing milestones: %s", err)
 	}
 
 	return nil
