@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
+
+	"time"
 
 	"github.com/google/go-github/github"
-	"time"
 )
 
 type milestone struct {
@@ -22,15 +22,11 @@ type milestoneService interface {
 	EditMilestone(owner, repo string, number int, milestone *github.Milestone) (*github.Milestone, *github.Response, error)
 }
 
-func syncMilestones(milestones []milestone, repos []string, service milestoneService) error {
+func syncMilestones(milestones []milestone, repos []repository, service milestoneService) error {
 	for _, repo := range repos {
 		log.Printf("Processing repository %q", repo)
-		repoParts := strings.Split(repo, "/")
-		if len(repoParts) < 2 {
-			return fmt.Errorf("repository %q is missing the owner. Required format: <owner>/<repository>", repo)
-		}
 
-		repoMilestones, err := fetchMilestones(repoParts[0], repoParts[1], service)
+		repoMilestones, err := fetchMilestones(repo, service)
 		if err != nil {
 			return err
 		}
@@ -38,7 +34,7 @@ func syncMilestones(milestones []milestone, repos []string, service milestoneSer
 		log.Printf("  Found %d milestones", len(repoMilestones))
 
 		for _, milestone := range milestones {
-			if err := ensureMilestone(milestone, repoParts[0], repoParts[1], repoMilestones, service); err != nil {
+			if err := ensureMilestone(milestone, repo, repoMilestones, service); err != nil {
 				return err
 			}
 		}
@@ -46,11 +42,11 @@ func syncMilestones(milestones []milestone, repos []string, service milestoneSer
 	return nil
 }
 
-func fetchMilestones(owner, repo string, service milestoneService) ([]*github.Milestone, error) {
+func fetchMilestones(repo repository, service milestoneService) ([]*github.Milestone, error) {
 	repoMilestones := []*github.Milestone{}
 	page := 0
 	for {
-		repoMilestonesPage, resp, err := service.ListMilestones(owner, repo, &github.MilestoneListOptions{
+		repoMilestonesPage, resp, err := service.ListMilestones(repo.Owner, repo.Name, &github.MilestoneListOptions{
 			State: "all",
 			ListOptions: github.ListOptions{
 				Page: page,
@@ -69,12 +65,12 @@ func fetchMilestones(owner, repo string, service milestoneService) ([]*github.Mi
 	return repoMilestones, nil
 }
 
-func ensureMilestone(ms milestone, owner, repo string, existingMilestones []*github.Milestone, service milestoneService) error {
+func ensureMilestone(ms milestone, repo repository, existingMilestones []*github.Milestone, service milestoneService) error {
 	if ms.State == "" {
 		ms.State = "open"
 	}
 	if ms.State != "closed" && ms.State != "open" {
-		return fmt.Errorf("state %q is invalid. Valid values are \"open\" and \"closed\".", ms.State)
+		return fmt.Errorf("state %q is invalid. Valid values are \"open\" and \"closed\"", ms.State)
 	}
 
 	var repoMilestone *github.Milestone
@@ -90,24 +86,24 @@ func ensureMilestone(ms milestone, owner, repo string, existingMilestones []*git
 
 	if repoMilestone == nil {
 		log.Printf("  Creating milestone %q", ms.Title)
-		_, _, err := service.CreateMilestone(owner, repo, &github.Milestone{
+		_, _, err := service.CreateMilestone(repo.Owner, repo.Name, &github.Milestone{
 			Title:       github.String(ms.Title),
 			Description: github.String(ms.Description),
 			DueOn:       &dueOn,
 			State:       github.String(ms.State),
 		})
 		if err != nil {
-			return fmt.Errorf("could not create milestone %q in repo \"%s/%s\": %s", ms.Title, owner, repo, err)
+			return fmt.Errorf("could not create milestone %q in repo %q: %s", ms.Title, repo, err)
 		}
 	} else {
-		_, _, err := service.EditMilestone(owner, repo, *repoMilestone.Number, &github.Milestone{
+		_, _, err := service.EditMilestone(repo.Owner, repo.Name, *repoMilestone.Number, &github.Milestone{
 			Title:       github.String(ms.Title),
 			Description: github.String(ms.Description),
 			DueOn:       &dueOn,
 			State:       github.String(ms.State),
 		})
 		if err != nil {
-			return fmt.Errorf("could not update milestone %q in repo \"%s/%s\": %s", ms.Title, owner, repo, err)
+			return fmt.Errorf("could not update milestone %q in repo %q: %s", ms.Title, repo, err)
 		}
 	}
 	return nil

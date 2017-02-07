@@ -79,13 +79,23 @@ func run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func readInRepositories() ([]string, error) {
+func readInRepositories() ([]repository, error) {
 	repoReader := bufio.NewReader(os.Stdin)
 	repoData, err := ioutil.ReadAll(repoReader)
 	if err != nil {
 		return nil, err
 	}
-	return strings.Split(strings.Trim(string(repoData), " \n"), "\n"), nil
+	lines := strings.Split(strings.Trim(string(repoData), " \n"), "\n")
+
+	var repos []repository
+	for _, l := range lines {
+		repo := newRepository(l)
+		if repo.Name == "" || repo.Owner == "" {
+			return nil, fmt.Errorf("repository %q has an invalid format. Required format: owner/repo", l)
+		}
+		repos = append(repos, repo)
+	}
+	return repos, nil
 }
 
 func must(err error) {
