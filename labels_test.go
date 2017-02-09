@@ -19,9 +19,9 @@ func TestFetchLabels_OneLabel(t *testing.T) {
 		}},
 	}
 
-	owner, repo := "seiffert", "ghsync"
+	repo := newRepository("seiffert/ghsync")
 
-	labels, err := fetchLabels(owner, repo, service)
+	labels, err := fetchLabels(repo, service)
 	if err != nil {
 		t.Fatalf("should not return an error (%s)", err)
 	}
@@ -52,9 +52,9 @@ func TestFetchLabels_TwoPages(t *testing.T) {
 		}},
 	}
 
-	owner, repo := "seiffert", "ghsync"
+	repo := newRepository("seiffert/ghsync")
 
-	labels, err := fetchLabels(owner, repo, service)
+	labels, err := fetchLabels(repo, service)
 	if err != nil {
 		t.Fatalf("should not return an error (%s)", err)
 	}
@@ -65,12 +65,12 @@ func TestFetchLabels_TwoPages(t *testing.T) {
 
 func TestEnsureLabel_Create(t *testing.T) {
 	name, color := "foo", "ffffff"
-	owner, repo := "seiffert", "ghsync"
+	repo := newRepository("seiffert/ghsync")
 
 	service := &mockLabelService{}
 	labels := map[string]string{}
 
-	if err := ensureLabel(name, color, owner, repo, labels, service); err != nil {
+	if err := ensureLabel(name, color, repo, labels, service); err != nil {
 		t.Fatalf("should not return an error: %s", err)
 	}
 	if len(service.Labels) != 1 {
@@ -87,12 +87,12 @@ func TestEnsureLabel_Create(t *testing.T) {
 
 func TestEnsureLabel_CreateLeadingHash(t *testing.T) {
 	name, color := "foo", "ffffff"
-	owner, repo := "seiffert", "ghsync"
+	repo := newRepository("seiffert/ghsync")
 
 	service := &mockLabelService{}
 	labels := map[string]string{}
 
-	if err := ensureLabel(name, "#"+color, owner, repo, labels, service); err != nil {
+	if err := ensureLabel(name, "#"+color, repo, labels, service); err != nil {
 		t.Fatalf("should not return an error: %s", err)
 	}
 	if len(service.Labels) != 1 {
@@ -109,7 +109,7 @@ func TestEnsureLabel_CreateLeadingHash(t *testing.T) {
 
 func TestEnsureLabel_Update(t *testing.T) {
 	name, oldColor, newColor := "foo", "ffffff", "000000"
-	owner, repo := "seiffert", "ghsync"
+	repo := newRepository("seiffert/ghsync")
 
 	service := &mockLabelService{
 		Labels: []*github.Label{{
@@ -122,7 +122,7 @@ func TestEnsureLabel_Update(t *testing.T) {
 		name: oldColor,
 	}
 
-	if err := ensureLabel(name, newColor, owner, repo, labels, service); err != nil {
+	if err := ensureLabel(name, newColor, repo, labels, service); err != nil {
 		t.Fatalf("should not return an error: %s", err)
 	}
 	if len(service.Labels) != 1 {
@@ -139,7 +139,7 @@ func TestEnsureLabel_Update(t *testing.T) {
 
 func TestEnsureLabel_AlreadyExists(t *testing.T) {
 	name, color := "foo", "ffffff"
-	owner, repo := "seiffert", "ghsync"
+	repo := newRepository("seiffert/ghsync")
 
 	service := &mockLabelService{
 		Labels: []*github.Label{{
@@ -152,7 +152,7 @@ func TestEnsureLabel_AlreadyExists(t *testing.T) {
 		name: color,
 	}
 
-	if err := ensureLabel(name, color, owner, repo, labels, service); err != nil {
+	if err := ensureLabel(name, color, repo, labels, service); err != nil {
 		t.Fatalf("should not return an error: %s", err)
 	}
 	if len(service.Labels) != 1 {

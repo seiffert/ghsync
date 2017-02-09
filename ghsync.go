@@ -26,7 +26,8 @@ var (
 		RunE:          run,
 	}
 	cfg struct {
-		Labels map[string]string `mapstructure:"labels"`
+		Labels     map[string]string `mapstructure:"labels"`
+		Milestones []milestone       `mapstructure:"milestones"`
 	}
 	configFile string
 )
@@ -64,20 +65,37 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Error reading repository list: %s", err)
 	}
 
+	log.Println("Syncing Labels")
 	if err := syncLabels(cfg.Labels, repos, c.Issues); err != nil {
-		return fmt.Errorf("Error syncing repositories: %s", err)
+		return fmt.Errorf("Error syncing labels: %s", err)
+	}
+
+	log.Println("")
+	log.Println("Syncing Milestones")
+	if err := syncMilestones(cfg.Milestones, repos, c.Issues); err != nil {
+		return fmt.Errorf("Error syncing milestones: %s", err)
 	}
 
 	return nil
 }
 
-func readInRepositories() ([]string, error) {
+func readInRepositories() ([]repository, error) {
 	repoReader := bufio.NewReader(os.Stdin)
 	repoData, err := ioutil.ReadAll(repoReader)
 	if err != nil {
 		return nil, err
 	}
-	return strings.Split(strings.Trim(string(repoData), " \n"), "\n"), nil
+	lines := strings.Split(strings.Trim(string(repoData), " \n"), "\n")
+
+	var repos []repository
+	for _, l := range lines {
+		repo := newRepository(l)
+		if repo.Name == "" || repo.Owner == "" {
+			return nil, fmt.Errorf("repository %q has an invalid format. Required format: owner/repo", l)
+		}
+		repos = append(repos, repo)
+	}
+	return repos, nil
 }
 
 func must(err error) {
