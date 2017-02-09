@@ -79,9 +79,13 @@ func ensureMilestone(ms milestone, repo repository, existingMilestones []*github
 			repoMilestone = existingMilestone
 		}
 	}
-	dueOn, err := time.Parse(time.RFC3339, ms.DueDate)
-	if err != nil {
-		return fmt.Errorf("due date %q is formatted invalid. Valid format: %q", ms.DueDate, time.RFC3339)
+	var dueOn time.Time
+	if ms.DueDate != "" {
+		date, err := time.Parse(time.RFC3339, ms.DueDate)
+		if err != nil {
+			return fmt.Errorf("due date %q is formatted invalid. Valid format: %q", ms.DueDate, time.RFC3339)
+		}
+		dueOn = date
 	}
 
 	if repoMilestone == nil {
