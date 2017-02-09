@@ -14,11 +14,32 @@ $ cat ghrepos.yaml
 labels:
   foo: '#ffffff'
   bar: '#000000'
+  
+milestones:
+  - title: Version 0.1
+    description: All issues that need to be done before release 0.1
+    due: 2017-02-06T12:00:00Z
+    state: closed
+  - title: Version 1.0
+    description: All issues that need to be done before release 1.0
+    due: 2017-03-02T12:00:00Z
+    state: open
+  - title: Version 1.1
+    description: All issues that need to be done before release 1.1
+    due: 2017-03-03T12:00:00Z
+    state: open
 $ echo seiffert/ghsync | ghsync --config ghsync.yaml
+Syncing Labels
 Processing repository "seiffert/ghsync"
   Found 7 labels
   Creating label "foo": "ffffff"
   Creating label "bar": "000000"
+  
+Syncing Milestones
+Processing repository "seiffert/ghsync"
+  Found 1 milestones
+  Creating milestone "Version 1.0"
+  Creating milestone "Version 1.1"
 ```
 
 To authenticate against the GitHub API, **ghsync** requires a GitHub access token.
