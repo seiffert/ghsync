@@ -64,9 +64,8 @@ func TestEnsureMilestone_Create(t *testing.T) {
 	repo := newRepository("seiffert/ghsync")
 
 	service := &mockMilestoneService{}
-	milestones := []*github.Milestone{}
 
-	if err := ensureMilestone(newMilestone, repo, milestones, service); err != nil {
+	if err := ensureMilestone(newMilestone, repo, nil, service); err != nil {
 		t.Fatalf("should not return an error: %s", err)
 	}
 	if len(service.Milestones) != 1 {
@@ -85,15 +84,15 @@ func TestEnsureMilestone_Update(t *testing.T) {
 	}
 	repo := newRepository("seiffert/ghsync")
 
-	milestones := []*github.Milestone{{
+	existingMilestone := &github.Milestone{
 		Title:  github.String("Version 1.0"),
 		Number: github.Int(1),
-	}}
+	}
 	service := &mockMilestoneService{
-		Milestones: milestones,
+		Milestones: []*github.Milestone{existingMilestone},
 	}
 
-	if err := ensureMilestone(newMilestone, repo, milestones, service); err != nil {
+	if err := ensureMilestone(newMilestone, repo, existingMilestone, service); err != nil {
 		t.Fatalf("should not return an error: %s", err)
 	}
 	if len(service.Milestones) != 1 {

@@ -34,7 +34,14 @@ func syncMilestones(milestones []milestone, repos []repository, service mileston
 		log.Printf("  Found %d milestones", len(repoMilestones))
 
 		for _, milestone := range milestones {
-			if err := ensureMilestone(milestone, repo, repoMilestones, service); err != nil {
+			var repoMilestone *github.Milestone
+			for _, existingMilestone := range repoMilestones {
+				if milestone.Title == *existingMilestone.Title {
+					repoMilestone = existingMilestone
+				}
+			}
+
+			if err := ensureMilestone(milestone, repo, repoMilestone, service); err != nil {
 				return err
 			}
 		}
@@ -65,7 +72,7 @@ func fetchMilestones(repo repository, service milestoneService) ([]*github.Miles
 	return repoMilestones, nil
 }
 
-func ensureMilestone(ms milestone, repo repository, existingMilestones []*github.Milestone, service milestoneService) error {
+func ensureMilestone(ms milestone, repo repository, existingMilestone *github.Milestone, service milestoneService) error {
 	if ms.State == "" {
 		ms.State = "open"
 	}
@@ -73,12 +80,6 @@ func ensureMilestone(ms milestone, repo repository, existingMilestones []*github
 		return fmt.Errorf("state %q is invalid. Valid values are \"open\" and \"closed\"", ms.State)
 	}
 
-	var repoMilestone *github.Milestone
-	for _, existingMilestone := range existingMilestones {
-		if ms.Title == *existingMilestone.Title {
-			repoMilestone = existingMilestone
-		}
-	}
 	var dueOn time.Time
 	if ms.DueDate != "" {
 		date, err := time.Parse(time.RFC3339, ms.DueDate)
@@ -88,7 +89,7 @@ func ensureMilestone(ms milestone, repo repository, existingMilestones []*github
 		dueOn = date
 	}
 
-	if repoMilestone == nil {
+	if existingMilestone == nil {
 		log.Printf("  Creating milestone %q", ms.Title)
 		_, _, err := service.CreateMilestone(repo.Owner, repo.Name, &github.Milestone{
 			Title:       github.String(ms.Title),
@@ -100,7 +101,7 @@ func ensureMilestone(ms milestone, repo repository, existingMilestones []*github
 			return fmt.Errorf("could not create milestone %q in repo %q: %s", ms.Title, repo, err)
 		}
 	} else {
-		_, _, err := service.EditMilestone(repo.Owner, repo.Name, *repoMilestone.Number, &github.Milestone{
+		_, _, err := service.EditMilestone(repo.Owner, repo.Name, *existingMilestone.Number, &github.Milestone{
 			Title:       github.String(ms.Title),
 			Description: github.String(ms.Description),
 			DueOn:       &dueOn,
