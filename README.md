@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/seiffert/ghsync.svg?branch=master)](https://travis-ci.org/seiffert/ghsync)
 [![Go Report Card](https://goreportcard.com/badge/github.com/seiffert/ghsync)](https://goreportcard.com/report/github.com/seiffert/ghsync)
+[![Code Climate](https://codeclimate.com/github/seiffert/ghsync/badges/gpa.svg)](https://codeclimate.com/github/seiffert/ghsync)
 
 **ghsync** is a CLI tool that allows you to sync configuration specified in a configuration file to multiple GitHub 
 repositories. This is particularly useful when you work with many repositories in your organization that should all 
