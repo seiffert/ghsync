@@ -9,13 +9,13 @@ func newRepository(in string) repository {
 	parts := strings.Split(in, "/")
 	return repository{
 		Owner: parts[0],
-		Name: parts[1],
+		Name:  parts[1],
 	}
 }
 
 type repository struct {
 	Owner string
-	Name string
+	Name  string
 }
 
 func (r repository) String() string {
